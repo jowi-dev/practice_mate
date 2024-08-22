@@ -4,6 +4,7 @@ defmodule PracticeMate.Spotify.Request do
   in a basic manner
   """
   alias Req
+  require Logger
 
   @api_url "https://api.spotify.com/v1/"
   @token_url "https://accounts.spotify.com/api/token"
@@ -65,23 +66,36 @@ defmodule PracticeMate.Spotify.Request do
   end
 
   @doc "Gets the playlist of specified ID"
-  @spec get_playlist(String.t()) :: :ok
+  @spec get_playlist(String.t()) :: list(PracticeMate.Spotify.song())
   def get_playlist(playlist_id) do
     # expires, use for dev
-    Req.new(method: :get, url: @api_url <> "playlists/#{playlist_id}", headers: auth_headers())
-    |> Req.request()
-    |> IO.inspect(limit: :infinity, pretty: true, label: "what's this")
+    {:ok, response} =
+      Req.new(method: :get, url: @api_url <> "playlists/#{playlist_id}", headers: auth_headers())
+      |> Req.request()
 
-    # .body["tracks"]
-    :ok
+    tracks = get_in(response.body, ["tracks", "items"])
+
+    Enum.map(tracks, fn track ->
+      track = track["track"]
+
+      artists =
+        track["artists"]
+        |> Enum.map(& &1["name"])
+        |> Enum.join(", ")
+
+      %{
+        name: track["name"],
+        id: track["id"],
+        artist: artists
+      }
+    end)
   end
 
   @doc "Plays the specified track"
-  @spec play_track(String.t()) :: :ok
+  @spec play_track(String.t()) :: :ok | :error
   def play_track(_track_id) do
-    # Req.new(method: 
-
-    :ok
+    # Not implemented
+    Enum.random([:ok, :error])
   end
 
   @doc """
@@ -99,20 +113,63 @@ defmodule PracticeMate.Spotify.Request do
       body: "device=#{device_id}"
     )
     |> Req.request()
-    |> case do 
+    |> case do
       {:ok, %Req.Response{status: 200}} -> :ok
       _ -> raise "This beat can't be stopped"
     end
   end
 
+  @doc """
+  Gets the currently playing track
+  """
+  @spec currently_playing() :: {:ok, map()} | :error
   def currently_playing() do
     Req.new(method: :get, url: @api_url <> "me/player/currently-playing", headers: auth_headers())
     |> Req.request()
+    |> case do
+      {:ok, %{status: 200, body: body}} ->
+        id = get_in(body, ["item", "id"])
+        name = get_in(body, ["item", "name"])
+        artist = get_in(body, ["item", "artist"])
+        {:ok, %{id: id, name: name, artist: artist}}
+
+      _error ->
+        Logger.warning("Could not get the currently playing song")
+        :error
+    end
   end
 
-  def devices() do
+  @doc """
+  Gets the device currently available for playback
+  """
+  @spec active_device() :: {:ok, map()} | :error
+  def active_device() do
     Req.new(method: :get, url: @api_url <> "me/player/devices", headers: auth_headers())
     |> Req.request()
+    |> case do
+      {:ok, %{status: 200, body: body}} ->
+        device = Enum.find(body["devices"], &(&1["is_active"] == true))
+        {:ok, %{id: device["id"], name: device["name"], volume: device["volume_percent"]}}
+
+      _error ->
+        Logger.warning("Could not find devices")
+        :error
+    end
+  end
+
+  @doc """
+  Gets the ID associated to the learning playlist from the env
+  not strictly necessary but makes mocking easier if it lives in the module
+  """
+  @spec learning_playlist_id() :: String.t()
+  def learning_playlist_id() do
+    case System.get_env("SPOTIFY_LEARNING_PLAYLIST_ID") do
+      nil ->
+        raise "Please set SPOTIFY_CLIENT_SECRET in your environment"
+
+      secret ->
+        secret
+    end
   end
 
   defp auth_headers() do
@@ -134,8 +191,8 @@ defmodule PracticeMate.Spotify.Request do
     end
   end
 
-  defp client_secret() do 
-    case System.get_env("SPOTIFY_CLIENT_SECRET") do 
+  defp client_secret() do
+    case System.get_env("SPOTIFY_CLIENT_SECRET") do
       nil ->
         raise "Please set SPOTIFY_CLIENT_SECRET in your environment"
 
@@ -144,14 +201,15 @@ defmodule PracticeMate.Spotify.Request do
     end
   end
 
-  @spec user_id() :: String.t()
-  defp user_id() do
-    case System.get_env("SPOTIFY_USER_ID") do
-      nil ->
-        raise "Please set SPOTIFY_USER_ID in your environment"
-
-      user_id ->
-        user_id
-    end
-  end
+  # TODO - Should be used for user related functions, when implemented
+  #  @spec user_id() :: String.t()
+  #  defp user_id() do
+  #    case System.get_env("SPOTIFY_USER_ID") do
+  #      nil ->
+  #        raise "Please set SPOTIFY_USER_ID in your environment"
+  #
+  #      user_id ->
+  #        user_id
+  #    end
+  #  end
 end

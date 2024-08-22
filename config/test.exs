@@ -7,6 +7,8 @@ config :practice_mate, PracticeMateWeb.Endpoint,
   secret_key_base: "vQ9yYvx6PZZkjb4DOB4KTPlaid2eJa1S1+vt2DI36R3VaF1FKd5eMyN8hWzZnM9W",
   server: false
 
+config :practice_mate, :behaviours, spotify_request: PracticeMate.Support.MockSpotifyRequest
+
 # In test we don't send emails
 config :practice_mate, PracticeMate.Mailer, adapter: Swoosh.Adapters.Test
 

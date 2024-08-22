@@ -21,6 +21,8 @@ config :practice_mate, PracticeMateWeb.Endpoint,
   pubsub_server: PracticeMate.PubSub,
   live_view: [signing_salt: "SkNZCyfG"]
 
+config :practice_mate, :behaviours, spotify_request: PracticeMate.Spotify.Request
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
