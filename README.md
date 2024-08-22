@@ -6,11 +6,14 @@ I was hesitant to pick Elixir for this at all because it screams CLI, but given 
 I'm not performance constrained, and just like elixir right now I'm going against
 better judgement and using what I know.
 
-No Phoenix planned as I'm not making a Web Interface or API. 
+It is phoenix in the most bare way possible. Just a UI that helps authorize spotify.
 
 Nx potentially - see point #1 in future
 
 Spotify-as-a-Database because I'm trying to stay away from dependencies as much as I can here.
+Opted for GenServers to store tokens and cache responses from spotify as needed.
+
+**In the interest of time, this repo has some less-than-sane error handling decisions that would not be appropriate for production, but are suitable for a CLI app**
 
 ## Current Roadmap
 - [X] Integrate with the Spotify api
