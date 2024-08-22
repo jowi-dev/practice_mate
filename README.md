@@ -13,7 +13,8 @@ Nx potentially - see point #1 in future
 Spotify-as-a-Database because I'm trying to stay away from dependencies as much as I can here.
 
 ## Current Roadmap
-- [ ] Integrate with the Spotify API
+- [X] Integrate with the Spotify api
+- [ ] Basic Start/Stop commands
 - [ ] Mock API responses for easier testing 
 - [ ] Setup basic TUI REPL
 
@@ -39,3 +40,9 @@ A few nice to haves for the future rainy days:
 ## Want to Give it a Spin?
 Set the `SPOTIFY_CLIENT_ID` in your environment to the client_id generated from your 
 very own spotify app (google spotify web api for info on setting this up).
+
+Then ensure the following environment variables are set in your environment
+- `SPOTIFY_CLIENT_ID` (from the spotify app developer console web ui)
+- `SPOTIFY_CLIENT_SECRET` (from the spotify app developer console web ui)
+- `SPOTIFY_USER_ID` (url in the web player of your user profile)
+- `SPOTIFY_LEARNING_PLAYLIST_ID` (any playlist id you own)
